@@ -50,6 +50,7 @@ export default{
 			datos.append('usuario', JSON.stringify(this.usuario))
 			this.axios.post(this.servidor+'Usuario.php', datos )
 			.then( resp => {
+				//console.log(resp.data)
 				if(resp.data.usuario.user){
 					sessionStorage.setItem('idUsuario', resp.data.usuario.id);
 					sessionStorage.setItem('nombreUsuario', resp.data.usuario.user);
