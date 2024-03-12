@@ -34,7 +34,7 @@
 	</div>
 </template>
 <script>
-import Subida from "./Subida"
+import Subida from "./SubidaNotas"
 import SubidaAlumnos from "./SubidaAlumnos"
 import Cursos from "./Cursos"
 import Alumnos from "./Alumnos"

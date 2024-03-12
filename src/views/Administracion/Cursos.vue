@@ -18,13 +18,19 @@
 		<table class="table table-hover mt-3">
 			<thead>
 				<th>N°</th>
+				<th>Código</th>
+				<th>Año</th>
+				<th>Semestre</th>
 				<th>Curso</th>
 				<th>Créditos</th>
 			</thead>
 			<tbody>
 				<tr v-for="(curso, index) in cursos">
 					<td>{{ index+1 }}</td>
-					<td>{{ curso.curso }}</td>
+					<td>{{ curso.codigo }}</td>
+					<td>{{ curso.año }}</td>
+					<td>{{ curso.semestre }}</td>
+					<td class="text-uppercase">{{ curso.curso }}</td>
 					<td>{{ curso.creditos }}</td>
 					<td class="d-grid gap-2 d-flex ">
 						<button class="btn btn-outline-primary btn-sm" @click="editarModalCurso(curso.id, index)"><i class="bi bi-pencil-square"></i></button>
@@ -53,9 +59,15 @@
 						<option value="-1">Seleccione la carrera</option>
 						<option v-for="carrera in carreras" :value="carrera.id">{{carrera.carrera}}</option>
 					</select>
+					<label for="">Código <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" v-model="cursoNuevo.codigo" min="1">
 					<label for="">Nombre del curso <span class="text-danger">*</span></label>
 					<input type="text" class="form-control" v-model="cursoNuevo.curso">
-					<label for="">Cantidad de créditos <span class="text-danger">*</span></label>
+					<label for="">Año</label>
+					<input type="number" class="form-control" v-model="cursoNuevo.año" min="1">
+					<label for="">Semestre <span class="text-danger">*</span></label>
+					<input type="number" class="form-control" v-model="cursoNuevo.semestre" min="1">
+					<label for="">Cantidad de créditos</label>
 					<input type="number" step="1" min="1" class="form-control" v-model="cursoNuevo.creditos">
 				</div>
 				<div class="modal-footer border-0">
@@ -69,11 +81,12 @@
 	</div>
 </template>
 <script>
+import moment from 'moment'
 export default{
 	props:['carreras'],
 	data() {
 		return {
-			idCarrera:-1, cursos:[], nombreCarrera:'', idCurso:-1, nombreCurso:'', cursoNuevo:{idCarrera:-1, curso:'', creditos:1, idCurso:-1}, estado:'crear'
+			idCarrera:-1, cursos:[], nombreCarrera:'', idCurso:-1, nombreCurso:'', cursoNuevo:{idCarrera:-1, curso:'', creditos:1, idCurso:-1, codigo:'', año:moment().format('YYYY'), semestre:1}, estado:'crear'
 		}
 	},
 	methods:{
@@ -91,11 +104,13 @@ export default{
 			}
 		},
 		eliminarCurso(id, index){
-			let datos = new FormData();
-			datos.append('pedir', 'eliminar')
-			datos.append('idCurso', id)
-			this.axios.post(this.servidor+'Cursos.php', datos )
-			.then(() => this.cursos.splice(index,1) )
+			if(confirm(`¿Desea eliminar el curso ${this.cursos[index].curso}?`)){
+				let datos = new FormData();
+				datos.append('pedir', 'eliminar')
+				datos.append('idCurso', id)
+				this.axios.post(this.servidor+'Cursos.php', datos )
+				.then(() => this.cursos.splice(index,1) )
+			}
 		},
 		crearModalCurso(){
 			this.estado = 'crear';
@@ -109,8 +124,12 @@ export default{
 				alertify.error('<i class="bi bi-bug"></i> Debe seleccionar la carrera', 10)
 			else if(this.cursoNuevo.curso.trim()=='')
 				alertify.error('<i class="bi bi-bug"></i> Debe ingresar un nombre', 10)
-			else if(this.cursoNuevo.creditos<0)
-				alertify.error('<i class="bi bi-bug"></i> Debe ingresar crédito', 10)
+			else if(this.cursoNuevo.codigo=='')
+				alertify.error('<i class="bi bi-bug"></i> Debe ingresar un código', 10)
+			else if(this.cursoNuevo.semestre=='')
+				alertify.error('<i class="bi bi-bug"></i> Debe ingresar un semestre', 10)
+			else if(this.cursoNuevo.semestre=='' || this.cursoNuevo.semestre<1)
+				alertify.error('<i class="bi bi-bug"></i> Debe ingresar un semestre', 10)
 			else{
 				let datos = new FormData();
 				
@@ -127,6 +146,7 @@ export default{
 					cerrar.click()
 					alertify.message('<i class="bi bi-check-lg"></i> Registrado correctamente', 10)	
 					this.cargarCursos();
+					this.limpiar();
 				})
 
 			}
@@ -137,12 +157,19 @@ export default{
 			this.cursoNuevo.idCurso = id
 			this.cursoNuevo.curso = this.cursos[index].curso
 			this.cursoNuevo.creditos = this.cursos[index].creditos
+			this.cursoNuevo.año = this.cursos[index].año
+			this.cursoNuevo.semestre = this.cursos[index].semestre
+			this.cursoNuevo.codigo = this.cursos[index].codigo
 
 			const modalCurso = new bootstrap.Modal('#modalCurso')
 			modalCurso.show()
 		},
-		editarCurso(){
-
+		limpiar(){
+			this.cursoNuevo.idCarrera=-1
+			this.cursoNuevo.idCurso = -1
+			this.cursoNuevo.curso =''
+			this.cursoNuevo.creditos =1
+			this.cursoNuevo.semestre =1
 		}
 	}
 	
